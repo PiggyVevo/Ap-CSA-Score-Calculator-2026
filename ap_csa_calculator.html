@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate your AP Computer Science A exam score. Drag sliders for multiple choice and FRQ sections to get your predicted 1–5 score.">
+    <title>AP CSA Score 2026+ Calculator</title>
+    <style>
+        :root {
+            --bg: #0a0a14;
+            --card-bg: rgba(20, 20, 40, 0.7);
+            --text: #e0e0f0;
+            --text-secondary: #b0b0cc;
+            --border: rgba(255, 255, 255, 0.08);
+            --score-5: #f0c040;
+            --score-5-glow: rgba(240, 192, 64, 0.5);
+            --score-4: #4ade80;
+            --score-4-glow: rgba(74, 222, 128, 0.5);
+            --score-3: #60a5fa;
+            --score-3-glow: rgba(96, 165, 250, 0.5);
+            --score-2: #fb923c;
+            --score-2-glow: rgba(251, 146, 60, 0.5);
+            --score-1: #f87171;
+            --score-1-glow: rgba(248, 113, 113, 0.5);
+            --accent: #8b5cf6;
+            --accent-light: #a78bfa;
+            --slider-track: rgba(255, 255, 255, 0.12);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --font: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            --radius: 20px;
+            --radius-sm: 10px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatOrb 20s infinite ease-in-out;
+        }
+        .bg-orb.orb-1 {
+            width: 500px;
+            height: 500px;
+            background: #6d28d9;
+            top: -15%;
+            left: -10%;
+            animation-delay: 0s;
+        }
+        .bg-orb.orb-2 {
+            width: 400px;
+            height: 400px;
+            background: #2563eb;
+            bottom: -12%;
+            right: -8%;
+            animation-delay: -7s;
+        }
+        .bg-orb.orb-3 {
+            width: 350px;
+            height: 350px;
+            background: #7c3aed;
+            top: 50%;
+            left: 55%;
+            animation-delay: -14s;
+        }
+        @keyframes floatOrb {
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+            20% {
+                transform: translate(60px, -40px) scale(1.15);
+            }
+            40% {
+                transform: translate(-30px, 50px) scale(0.9);
+            }
+            60% {
+                transform: translate(-50px, -30px) scale(1.08);
+            }
+            80% {
+                transform: translate(40px, 20px) scale(0.95);
+            }
+        }
+
+        /* Main container */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 750px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 8px 0;
+        }
+        .header .icon-row {
+            font-size: 42px;
+            margin-bottom: 4px;
+            animation: bounceIcon 2s infinite ease-in-out;
+        }
+        @keyframes bounceIcon {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-14px);
+            }
+            60% {
+                transform: translateY(-4px);
+            }
+        }
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #e0e7ff, #c4b5fd, #93c5fd);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        .header .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.03em;
+            font-weight: 500;
+        }
+
+        /* Glass card */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+            transition: var(--transition);
+        }
+
+        /* Layout: gauge + sliders */
+        .calculator-layout {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        .gauge-section {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 180px;
+            padding-top: 8px;
+        }
+        .sliders-section {
+            flex: 1 1 320px;
+            min-width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* SVG Gauge */
+        .gauge-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+        }
+        .gauge-container svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        .gauge-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.06);
+            stroke-width: 14;
+        }
+        .gauge-fill {
+            fill: none;
+            stroke-width: 14;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.5s ease;
+        }
+        .gauge-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+        }
+        .gauge-score {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.03em;
+            transition: color 0.4s ease, text-shadow 0.4s ease;
+        }
+        .gauge-pct {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            transition: color 0.4s ease;
+        }
+
+        /* Score description */
+        .score-description {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.4s ease;
+            letter-spacing: 0.02em;
+            min-height: 22px;
+        }
+
+        /* Section labels */
+        .section-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 700;
+            color: var(--accent-light);
+            margin-bottom: 2px;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 2px;
+        }
+        .section-header .title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #e8e8f8;
+        }
+        .section-header .max {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Slider row */
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.025);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: var(--transition);
+        }
+        .slider-row:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .slider-row .slider-info {
+            flex: 0 0 auto;
+            min-width: 90px;
+        }
+        .slider-row .slider-info .frq-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #ddddf8;
+            line-height: 1.2;
+        }
+        .slider-row .slider-info .frq-topic {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+        .slider-row input[type="range"] {
+            flex: 1 1 auto;
+            min-width: 80px;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 10px;
+            background: var(--slider-track);
+            outline: none;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .slider-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 3px solid var(--accent);
+            cursor: grab;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 0 0 6px rgba(139, 92, 246, 0.15);
+            transition: var(--transition);
+            position: relative;
+        }
+        .slider-row input[type="range"]::-webkit-slider-thumb:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+            border-color: #c4b5fd;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45), 0 0 0 12px rgba(139, 92, 246, 0.25);
+        }
+        .slider-row input[type="range"]::-moz-range-thumb {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 3px solid var(--accent);
+            cursor: grab;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 0 0 6px rgba(139, 92, 246, 0.15);
+            transition: var(--transition);
+        }
+        .slider-row input[type="range"]::-moz-range-thumb:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+        .slider-row input[type="range"]::-moz-range-track {
+            height: 8px;
+            border-radius: 10px;
+            background: var(--slider-track);
+        }
+        .slider-row .num-input {
+            flex: 0 0 auto;
+            width: 60px;
+            height: 40px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: var(--font);
+            color: #fff;
+            background: var(--input-bg);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            outline: none;
+            transition: var(--transition);
+            letter-spacing: 0.02em;
+        }
+        .slider-row .num-input:focus {
+            border-color: var(--accent-light);
+            box-shadow: 0 0 0 6px rgba(139, 92, 246, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .slider-row .num-input::-webkit-inner-spin-button,
+        .slider-row .num-input::-webkit-outer-spin-button {
+            opacity: 1;
+            height: 28px;
+        }
+
+        /* Divider */
+        .divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin: 6px 0;
+        }
+
+        /* Breakdown row */
+        .breakdown {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .breakdown span {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+        .breakdown .val {
+            color: #e0e0f8;
+            font-weight: 700;
+        }
+
+        /* Confetti canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Responsive */
+        @media (max-width: 650px) {
+            .calculator-layout {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            .gauge-section {
+                padding-top: 0;
+            }
+            .gauge-container {
+                width: 140px;
+                height: 140px;
+            }
+            .gauge-score {
+                font-size: 3rem;
+            }
+            .card {
+                padding: 20px 16px;
+                border-radius: 16px;
+            }
+            .header h1 {
+                font-size: 1.6rem;
+            }
+            .slider-row {
+                padding: 10px 12px;
+                gap: 8px;
+            }
+            .slider-row .slider-info {
+                min-width: 65px;
+            }
+            .slider-row .slider-info .frq-name {
+                font-size: 0.78rem;
+            }
+            .slider-row .slider-info .frq-topic {
+                font-size: 0.65rem;
+            }
+            .slider-row .num-input {
+                width: 48px;
+                height: 34px;
+                font-size: 0.85rem;
+            }
+            .slider-row input[type="range"] {
+                height: 6px;
+            }
+            .slider-row input[type="range"]::-webkit-slider-thumb {
+                width: 24px;
+                height: 24px;
+            }
+            .slider-row input[type="range"]::-moz-range-thumb {
+                width: 24px;
+                height: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Animated background orbs -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <!-- Confetti canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Main container -->
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="icon-row">☕💻</div>
+            <h1>AP CSA Score Calculator 2026+</h1>
+            <p class="subtitle">Computer Science A</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card">
+            <div class="calculator-layout">
+                <!-- Gauge -->
+                <div class="gauge-section">
+                    <div class="gauge-container" id="gaugeContainer">
+                        <svg viewBox="0 0 180 180">
+                            <circle class="gauge-bg" cx="90" cy="90" r="76"/>
+                            <circle class="gauge-fill" id="gaugeFill" cx="90" cy="90" r="76"
+                            stroke-dasharray="477.52" stroke-dashoffset="477.52"/>
+                        </svg>
+                        <div class="gauge-center">
+                            <div class="gauge-score" id="gaugeScore">-</div>
+                            <div class="gauge-pct" id="gaugePct">0%</div>
+                        </div>
+                    </div>
+                    <div class="score-description" id="scoreDescription">Adjust scores to begin</div>
+                </div>
+
+                <!-- Sliders -->
+                <div class="sliders-section">
+                    <!-- MC Section -->
+                    <div class="section-label">📝 Multiple Choice — 55% Weight</div>
+                    <div class="section-header">
+                        <span class="title">MC Score</span>
+                        <span class="max">out of 42</span>
+                    </div>
+                    <div class="slider-row" id="mcRow">
+                        <div class="slider-info">
+                            <div class="frq-name">Multiple Choice</div>
+                            <div class="frq-topic">40 questions</div>
+                        </div>
+                        <input type="range" id="mcSlider" min="0" max="42" step="1" value="25" aria-label="MC Score">
+                        <input type="number" id="mcNumber" class="num-input" min="0" max="42" step="1" value="25" aria-label="MC Score input">
+                    </div>
+
+                    <hr class="divider">
+
+                    <!-- FRQ Section -->
+                    <div class="section-label">✍️ Free Response — 45% Weight</div>
+
+                    <div class="section-header">
+                        <span class="title">FRQ 1</span>
+                        <span class="max">out of 7</span>
+                    </div>
+                    <div class="slider-row" id="frq1Row">
+                        <div class="slider-info">
+                            <div class="frq-name">FRQ 1</div>
+                            <div class="frq-topic">Methods & Constructors</div>
+                        </div>
+                        <input type="range" id="frq1Slider" min="0" max="7" step="1" value="4" aria-label="FRQ 1 Score">
+                        <input type="number" id="frq1Number" class="num-input" min="0" max="7" step="0.5" value="4" aria-label="FRQ 1 input">
+                    </div>
+
+                    <div class="section-header">
+                        <span class="title">FRQ 2</span>
+                        <span class="max">out of 7</span>
+                    </div>
+                    <div class="slider-row" id="frq2Row">
+                        <div class="slider-info">
+                            <div class="frq-name">FRQ 2</div>
+                            <div class="frq-topic">Class Creation</div>
+                        </div>
+                        <input type="range" id="frq2Slider" min="0" max="7" step="1" value="4" aria-label="FRQ 2 Score">
+                        <input type="number" id="frq2Number" class="num-input" min="0" max="7" step="1" value="4" aria-label="FRQ 2 input">
+                    </div>
+
+                    <div class="section-header">
+                        <span class="title">FRQ 3</span>
+                        <span class="max">out of 5</span>
+                    </div>
+                    <div class="slider-row" id="frq3Row">
+                        <div class="slider-info">
+                            <div class="frq-name">FRQ 3</div>
+                            <div class="frq-topic">ArrayList</div>
+                        </div>
+                        <input type="range" id="frq3Slider" min="0" max="5" step="1" value="3" aria-label="FRQ 3 Score">
+                        <input type="number" id="frq3Number" class="num-input" min="0" max="5" step="0.5" value="3" aria-label="FRQ 3 input">
+                    </div>
+
+                    <div class="section-header">
+                        <span class="title">FRQ 4</span>
+                        <span class="max">out of 6</span>
+                    </div>
+                    <div class="slider-row" id="frq4Row">
+                        <div class="slider-info">
+                            <div class="frq-name">FRQ 4</div>
+                            <div class="frq-topic">2D Array</div>
+                        </div>
+                        <input type="range" id="frq4Slider" min="0" max="6" step="0.5" value="3" aria-label="FRQ 4 Score">
+                        <input type="number" id="frq4Number" class="num-input" min="0" max="6" step="1" value="3" aria-label="FRQ 4 input">
+                    </div>
+
+                    <!-- Breakdown -->
+                    <div class="breakdown" id="breakdown">
+                        <span>FRQ Total: <span class="val" id="frqTotalDisplay">14 / 25</span></span>
+                        <span>MC Weighted: <span class="val" id="mcWeightedDisplay">32.7%</span></span>
+                        <span>FRQ Weighted: <span class="val" id="frqWeightedDisplay">25.2%</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // --- DOM references ---
+            const mcSlider = document.getElementById('mcSlider');
+            const mcNumber = document.getElementById('mcNumber');
+            const frq1Slider = document.getElementById('frq1Slider');
+            const frq1Number = document.getElementById('frq1Number');
+            const frq2Slider = document.getElementById('frq2Slider');
+            const frq2Number = document.getElementById('frq2Number');
+            const frq3Slider = document.getElementById('frq3Slider');
+            const frq3Number = document.getElementById('frq3Number');
+            const frq4Slider = document.getElementById('frq4Slider');
+            const frq4Number = document.getElementById('frq4Number');
+
+            const gaugeFill = document.getElementById('gaugeFill');
+            const gaugeScore = document.getElementById('gaugeScore');
+            const gaugePct = document.getElementById('gaugePct');
+            const scoreDescription = document.getElementById('scoreDescription');
+            const frqTotalDisplay = document.getElementById('frqTotalDisplay');
+            const mcWeightedDisplay = document.getElementById('mcWeightedDisplay');
+            const frqWeightedDisplay = document.getElementById('frqWeightedDisplay');
+
+            const confettiCanvas = document.getElementById('confetti-canvas');
+            const ctx = confettiCanvas.getContext('2d');
+
+            // --- Constants ---
+            const MC_MAX = 42;
+            const MC_WEIGHT = 55;
+            const FRQ_MAX = 25;
+            const FRQ_WEIGHT = 45;
+            const CIRCUMFERENCE = 2 * Math.PI * 76; // ~477.52
+
+            // --- Score metadata ---
+            const scoreMeta = {
+                5: {
+                    color: 'var(--score-5)',
+                    glow: 'var(--score-5-glow)',
+                    hex: '#f0c040',
+                    hexGlow: 'rgba(240,192,64,0.7)',
+                    label: '⭐ Extremely Well Qualified',
+                    desc: 'Top-tier performance! You\'re in the top ~15-20% of test-takers.'
+                },
+                4: {
+                    color: 'var(--score-4)',
+                    glow: 'var(--score-4-glow)',
+                    hex: '#4ade80',
+                    hexGlow: 'rgba(74,222,128,0.7)',
+                    label: '✅ Well Qualified',
+                    desc: 'Strong performance. Most colleges grant credit for a 4.'
+                },
+                3: {
+                    color: 'var(--score-3)',
+                    glow: 'var(--score-3-glow)',
+                    hex: '#60a5fa',
+                    hexGlow: 'rgba(96,165,250,0.7)',
+                    label: '📘 Qualified (Passing)',
+                    desc: 'Solid understanding. Many colleges accept a 3 for credit.'
+                },
+                2: {
+                    color: 'var(--score-2)',
+                    glow: 'var(--score-2-glow)',
+                    hex: '#fb923c',
+                    hexGlow: 'rgba(251,146,60,0.7)',
+                    label: '⚠️ Possibly Qualified',
+                    desc: 'Below the typical credit threshold. Keep studying!'
+                },
+                1: {
+                    color: 'var(--score-1)',
+                    glow: 'var(--score-1-glow)',
+                    hex: '#f87171',
+                    hexGlow: 'rgba(248,113,113,0.7)',
+                    label: '❌ No Recommendation',
+                    desc: 'Significant review needed. Don\'t give up!'
+                }
+            };
+
+            // --- State ---
+            let currentAPScore = null;
+            let previousAPScore = null;
+            let confettiActive = false;
+            let confettiParticles = [];
+            let confettiAnimationId = null;
+
+            // --- Sync slider <-> number input ---
+            function syncPair(slider, numInput, step) {
+                return {
+                    sliderToNum: () => {
+                        let val = parseFloat(slider.value);
+                        if (step === 1) val = Math.round(val);
+                        else val = Math.round(val * 2) / 2; // round to nearest 0.5
+                        numInput.value = val;
+                        slider.value = val;
+                    },
+                    numToSlider: () => {
+                        let val = parseFloat(numInput.value);
+                        if (isNaN(val)) val = 0;
+                        val = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), val));
+                        if (step === 1) val = Math.round(val);
+                        else val = Math.round(val * 2) / 2;
+                        numInput.value = val;
+                        slider.value = val;
+                    }
+                };
+            }
+
+            const mcPair = syncPair(mcSlider, mcNumber, 1);
+            const frq1Pair = syncPair(frq1Slider, frq1Number, 0.5);
+            const frq2Pair = syncPair(frq2Slider, frq2Number, 0.5);
+            const frq3Pair = syncPair(frq3Slider, frq3Number, 0.5);
+            const frq4Pair = syncPair(frq4Slider, frq4Number, 0.5);
+
+            const allPairs = [mcPair, frq1Pair, frq2Pair, frq3Pair, frq4Pair];
+            const allSliders = [mcSlider, frq1Slider, frq2Slider, frq3Slider, frq4Slider];
+            const allNumbers = [mcNumber, frq1Number, frq2Number, frq3Number, frq4Number];
+
+            // --- Update slider track fill ---
+            function updateSliderFill(slider) {
+                const min = parseFloat(slider.min);
+                const max = parseFloat(slider.max);
+                const val = parseFloat(slider.value);
+                const pct = ((val - min) / (max - min)) * 100;
+                const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+                const trackColor = 'rgba(255,255,255,0.12)';
+                slider.style.background =
+                    `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${pct}%, ${trackColor} ${pct}%, ${trackColor} 100%)`;
+            }
+
+            function updateAllSliderFills() {
+                allSliders.forEach(updateSliderFill);
+            }
+
+            // --- Calculate score ---
+            function calculate() {
+                const mcScore = parseFloat(mcSlider.value) || 0;
+                const frq1 = parseFloat(frq1Slider.value) || 0;
+                const frq2 = parseFloat(frq2Slider.value) || 0;
+                const frq3 = parseFloat(frq3Slider.value) || 0;
+                const frq4 = parseFloat(frq4Slider.value) || 0;
+
+                const frqTotal = frq1 + frq2 + frq3 + frq4;
+                const weightedMC = (mcScore / MC_MAX) * MC_WEIGHT;
+                const weightedFRQ = (frqTotal / FRQ_MAX) * FRQ_WEIGHT;
+                const totalPercentage = weightedMC + weightedFRQ;
+                const roundedPercentage = Math.round(totalPercentage);
+
+                let apScore;
+                if (roundedPercentage >= 85) apScore = 5;
+                else if (roundedPercentage >= 70) apScore = 4;
+                else if (roundedPercentage >= 55) apScore = 3;
+                else if (roundedPercentage >= 40) apScore = 2;
+                else apScore = 1;
+
+                return {
+                    mcScore,
+                    frqTotal,
+                    weightedMC,
+                    weightedFRQ,
+                    totalPercentage,
+                    roundedPercentage,
+                    apScore
+                };
+            }
+
+            // --- Update UI ---
+            function updateUI() {
+                const result = calculate();
+
+                // Update gauge ring
+                const pct = Math.min(100, Math.max(0, result.totalPercentage));
+                const offset = CIRCUMFERENCE - (pct / 100) * CIRCUMFERENCE;
+                gaugeFill.setAttribute('stroke-dashoffset', offset);
+
+                // Update gauge colors
+                const meta = scoreMeta[result.apScore];
+                gaugeFill.style.stroke = meta.hex;
+                gaugeScore.style.color = meta.hex;
+                gaugeScore.style.textShadow = `0 0 30px ${meta.hexGlow}, 0 0 60px ${meta.hexGlow}`;
+                gaugePct.style.color = meta.hex;
+
+                // Update gauge text
+                gaugeScore.textContent = result.apScore;
+                gaugePct.textContent = Math.round(result.totalPercentage) + '%';
+
+                // Update description
+                scoreDescription.textContent = meta.label;
+                scoreDescription.style.color = meta.hex;
+
+                // Update breakdown
+                frqTotalDisplay.textContent = result.frqTotal.toFixed(1) + ' / 25';
+                mcWeightedDisplay.textContent = result.weightedMC.toFixed(1) + '%';
+                frqWeightedDisplay.textContent = result.weightedFRQ.toFixed(1) + '%';
+
+                // Check for score change
+                previousAPScore = currentAPScore;
+                currentAPScore = result.apScore;
+
+                // Trigger confetti on new 5
+                if (currentAPScore === 5 && previousAPScore !== 5 && previousAPScore !== null) {
+                    triggerConfetti();
+                }
+
+                updateAllSliderFills();
+            }
+
+            // --- Confetti system ---
+            function resizeConfettiCanvas() {
+                confettiCanvas.width = window.innerWidth;
+                confettiCanvas.height = window.innerHeight;
+            }
+            resizeConfettiCanvas();
+            window.addEventListener('resize', resizeConfettiCanvas);
+
+            function triggerConfetti() {
+                confettiActive = true;
+                confettiParticles = [];
+                const colors = ['#f0c040', '#ff6b6b', '#4ade80', '#60a5fa', '#fb923c', '#c084fc',
+                    '#f472b6', '#fbbf24', '#34d399', '#818cf8', '#ffd700', '#ff9ff3'
+                ];
+
+                for (let i = 0; i < 200; i++) {
+                    confettiParticles.push({
+                        x: Math.random() * confettiCanvas.width,
+                        y: Math.random() * -confettiCanvas.height * 0.6 - 20,
+                        w: Math.random() * 10 + 4,
+                        h: Math.random() * 6 + 3,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        vx: (Math.random() - 0.5) * 8,
+                        vy: Math.random() * 4 + 2.5,
+                        rotation: Math.random() * 360,
+                        rotSpeed: (Math.random() - 0.5) * 10,
+                        opacity: 1,
+                        gravity: 0.04 + Math.random() * 0.06,
+                        drag: 0.0005,
+                        wobble: Math.random() * 0.03,
+                    });
+                }
+
+                if (!confettiAnimationId) {
+                    animateConfetti();
+                }
+
+                // Auto-stop after 3.5 seconds
+                setTimeout(() => {
+                    confettiActive = false;
+                }, 3500);
+            }
+
+            function animateConfetti() {
+                confettiAnimationId = requestAnimationFrame(animateConfetti);
+                ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+                let allDone = true;
+                for (let i = confettiParticles.length - 1; i >= 0; i--) {
+                    const p = confettiParticles[i];
+                    if (p.opacity <= 0.01 || p.y > confettiCanvas.height + 50) {
+                        confettiParticles.splice(i, 1);
+                        continue;
+                    }
+                    allDone = false;
+                    p.vy += p.gravity;
+                    p.vx *= (1 - p.drag);
+                    p.x += p.vx + Math.sin(p.y * p.wobble) * 0.8;
+                    p.y += p.vy;
+                    p.rotation += p.rotSpeed;
+                    if (p.y > confettiCanvas.height * 0.7) {
+                        p.opacity -= 0.012;
+                    }
+                    if (p.opacity < 0) p.opacity = 0;
+
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.rotation * Math.PI) / 180);
+                    ctx.globalAlpha = Math.max(0, p.opacity);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                    ctx.restore();
+                }
+
+                if (allDone && !confettiActive && confettiParticles.length === 0) {
+                    cancelAnimationFrame(confettiAnimationId);
+                    confettiAnimationId = null;
+                    ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                }
+            }
+
+            // --- Event listeners ---
+            // Slider input -> sync num, update
+            allSliders.forEach(slider => {
+                slider.addEventListener('input', () => {
+                    const pair = allPairs[allSliders.indexOf(slider)];
+                    pair.sliderToNum();
+                    updateUI();
+                });
+            });
+
+            // Number input -> sync slider, update
+            allNumbers.forEach(numInput => {
+                numInput.addEventListener('input', () => {
+                    const pair = allPairs[allNumbers.indexOf(numInput)];
+                    pair.numToSlider();
+                    updateUI();
+                });
+                numInput.addEventListener('change', () => {
+                    const pair = allPairs[allNumbers.indexOf(numInput)];
+                    pair.numToSlider();
+                    updateUI();
+                });
+                // Blur: ensure value is clamped
+                numInput.addEventListener('blur', () => {
+                    const pair = allPairs[allNumbers.indexOf(numInput)];
+                    pair.numToSlider();
+                    updateUI();
+                });
+            });
+
+            // Keyboard support for sliders
+            allSliders.forEach(slider => {
+                slider.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e
+                        .key === 'ArrowDown') {
+                        setTimeout(() => {
+                            const pair = allPairs[allSliders.indexOf(slider)];
+                            pair.sliderToNum();
+                            updateUI();
+                        }, 10);
+                    }
+                });
+            });
+
+            // --- Initialize ---
+            function init() {
+                // Sync all
+                allPairs.forEach(pair => pair.sliderToNum());
+                updateAllSliderFills();
+                updateUI();
+                // Set initial previous score
+                const result = calculate();
+                currentAPScore = result.apScore;
+                previousAPScore = result.apScore;
+            }
+
+            init();
+
+            window.addEventListener('resize', () => {
+                updateAllSliderFills();
+            });
+
+            console.log('🚀 AP CSA Score Calculator Ready!');
+            console.log('   Drag the sliders or type scores to calculate your AP score (1-5).');
+            console.log('   MC: 0-42 (55% weight) | FRQ Total: 0-25 (45% weight)');
+            console.log('   Rounding: Standard .5+ rounds up. 84.68% → 85% (Score 5), 84.35% → 84% (Score 4)');
+            console.log('   Score 5 = 85-100% | 4 = 70-84% | 3 = 55-69% | 2 = 40-54% | 1 = 0-39%');
+        })();
+    </script>
+</body>
+</html>
